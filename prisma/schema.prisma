@@ -27,4 +27,15 @@ model Appointment {
   reason        String
   doctor_id     Int
   doctor        Doctor   @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+  patientId     Int
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Patient {
+  id           Int           @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  birthday     DateTime
+  appointments Appointment[]
+
 }

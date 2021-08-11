@@ -8,7 +8,7 @@ const {
 
 async function getAllAppointments(req, res) {
   const { filter, value, order } = req.query;
-  let orderContent = null;
+  let orderContent = undefined;
   const filterContent = {
     [filter]: value,
   };
