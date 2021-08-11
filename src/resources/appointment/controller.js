@@ -1,4 +1,3 @@
-const { appointment } = require("../../utils/database");
 const prisma = require("../../utils/database");
 
 const {
@@ -52,7 +51,13 @@ async function postOneAppointment(req, res) {
 }
 
 function newAppointmentChecker(newAppointment) {
-  const newItemRequirements = ["practice_name", "date", "reason", "doctor_id"];
+  const newItemRequirements = [
+    "practice_name",
+    "date",
+    "reason",
+    "doctor_id",
+    "patient_id",
+  ];
   const { doctor_id, date } = newAppointment;
 
   const isIdNum = typeof doctor_id === "number";
@@ -66,9 +71,6 @@ function newAppointmentChecker(newAppointment) {
     : (lengthMatch = false);
 
   if (hasAllKeys && lengthMatch && isIdNum) return true;
-  console.log("hasAllKeys", hasAllKeys);
-  console.log("lengthMatch", lengthMatch);
-  console.log("isIdNum", isIdNum);
 
   return false;
 }

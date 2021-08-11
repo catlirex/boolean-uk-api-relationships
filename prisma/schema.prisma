@@ -27,8 +27,8 @@ model Appointment {
   reason        String
   doctor_id     Int
   doctor        Doctor   @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
-  patientId     Int
-  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient_id    Int
+  patient       Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
 }
 
 model Patient {

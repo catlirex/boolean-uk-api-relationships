@@ -6,7 +6,7 @@ function errorHandler(error, res) {
   if (error.message.includes("Foreign key constraint failed"))
     return res.status(400).json({
       ERROR:
-        "Please Check input of appointment id / doctor id. Fail to connect the relation",
+        "Please check IDs input. Fail to connect between Doctor/Patient/Appointment",
     });
 
   if (error.message === "Cannot read property 'delete' of undefined")
@@ -115,15 +115,12 @@ function newDoctorChecker(doctorObject) {
       ? (lengthMatch = true)
       : (lengthMatch = false);
 
-  console.log("hasAllKeys", hasAllKeys);
-  console.log("lengthMatch", lengthMatch);
-
   if (hasAllKeys && lengthMatch) return true;
   else return false;
 }
 
 function newDoctorAppointmentChecker(appointments) {
-  const newItemRequirements = ["practice_name", "date", "reason"];
+  const newItemRequirements = ["practice_name", "date", "reason", "patient_id"];
   let isValid = false;
   for (const appointment of appointments) {
     const hasAllKeys = newItemRequirements.every((item) =>

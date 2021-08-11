@@ -53,7 +53,7 @@ function buildAppointmentDatabase() {
 
   for (let i = 0; i < appointmentNumber; i++) {
     const appointment = {
-      practice_name: faker.music.genre + " Clinic",
+      practice_name: faker.music.genre() + " Clinic",
       date: faker.date.soon(),
       reason: faker.lorem.sentence(),
     };
