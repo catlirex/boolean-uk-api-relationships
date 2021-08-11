@@ -67,10 +67,25 @@ async function postOneDoctor(req, res) {
   }
 
   try {
-    const result = await createDoctorToServer(newDoctor);
-    res.json(result);
+    const createdDoctor = await createDoctorToServer(newDoctor);
+    const result = await selectOneDoctorInclude(
+      { id: createdDoctor.id },
+      { appointments: true }
+    );
   } catch (e) {
     errorHandler(e, res);
+  }
+}
+
+async function selectOneDoctorInclude(filterContent, includeContent) {
+  try {
+    const result = await prisma.doctor.findUnique({
+      where: filterContent,
+      include: includeContent,
+    });
+    return result;
+  } catch (e) {
+    throw e;
   }
 }
 
@@ -203,7 +218,7 @@ async function deleteOneDoctor(req, res) {
       },
     });
 
-    console.log(prisma.doctor);
+    res.json(deletedDoctor);
   } catch (e) {
     errorHandler(e, res);
   }
