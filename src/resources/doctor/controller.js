@@ -2,6 +2,13 @@ const prisma = require("../../utils/database");
 
 function errorHandler(error, res) {
   console.log(error.message);
+
+  if (error.message.includes("Foreign key constraint failed"))
+    return res.status(400).json({
+      ERROR:
+        "Please Check input of appointment id / doctor id. Fail to connect the relation",
+    });
+
   if (error.message === "Cannot read property 'delete' of undefined")
     return res.status(400).json({ ERROR: "Delete target not found" });
 
@@ -139,10 +146,12 @@ async function patchOneDoctor(req, res) {
   const toUpdateContent = req.body;
   try {
     const itemExist = await itemChecker(id);
-    if (!itemExist) return res.json({ ERROR: `BOOK NOT FOUND bookId:${id}` });
+    if (!itemExist)
+      return res.status(400).json({ ERROR: `DOCTOR NOT FOUND id:${id}` });
 
     const contentValid = updateDoctorChecker(toUpdateContent);
-    if (!contentValid) return res.json({ ERROR: `Update info incorrect` });
+    if (!contentValid)
+      return res.status(400).json({ ERROR: `Update info incorrect` });
 
     const updatedBook = await updateDoctorToServer(id, toUpdateContent);
     res.json(updatedBook);
@@ -165,7 +174,7 @@ async function itemChecker(id) {
 }
 
 function updateDoctorChecker(toUpdateObject) {
-  const updateItemRequirements = ["id", "first_name", "last_name", "specialty"];
+  const updateItemRequirements = ["first_name", "last_name", "specialty"];
 
   for (const key of Object.keys(toUpdateObject)) {
     const keyChecker = updateItemRequirements.includes(key);
@@ -194,9 +203,7 @@ async function deleteOneDoctor(req, res) {
   const id = Number(req.params.id);
   try {
     const deletedDoctor = await prisma.doctor.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     res.json(deletedDoctor);

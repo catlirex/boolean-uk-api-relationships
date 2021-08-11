@@ -72,4 +72,107 @@ async function createAppointmentToServer(newAppointment) {
   }
 }
 
-module.exports = { getAllAppointments, postOneAppointment };
+async function patchOneAppointment(req, res) {
+  const id = Number(req.params.id);
+  const toUpdateContent = req.body;
+  try {
+    const itemExist = await itemChecker(id);
+    if (!itemExist)
+      return res.status(400).json({ ERROR: `APPOINTMENT NOT FOUND id:${id}` });
+
+    const contentValid = updateAppointmentChecker(toUpdateContent);
+    if (!contentValid)
+      return res.status(400).json({ ERROR: `Update info incorrect` });
+
+    const updatedAppointment = await updateAppointmentToServer(
+      id,
+      toUpdateContent
+    );
+
+    res.json(updatedAppointment);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+}
+
+async function itemChecker(id) {
+  try {
+    const toUpdateItem = await prisma.appointment.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (toUpdateItem) return true;
+    if (!toUpdateItem) return false;
+  } catch (e) {
+    throw e;
+  }
+}
+
+function updateAppointmentChecker(toUpdateContent) {
+  const updateItemRequirements = [
+    "practice_name",
+    "date",
+    "reason",
+    "doctor_id",
+  ];
+
+  for (const key of Object.keys(toUpdateContent)) {
+    const keyChecker = updateItemRequirements.includes(key);
+    if (!keyChecker) return false;
+  }
+
+  return true;
+}
+
+async function updateAppointmentToServer(id, toUpdateContent) {
+  try {
+    const updatedAppointment = await prisma.appointment.update({
+      where: {
+        id,
+      },
+      data: toUpdateContent,
+    });
+
+    return updatedAppointment;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function deleteOneAppointment(req, res) {
+  const id = Number(req.params.id);
+  try {
+    const deletedAppointment = await prisma.appointment.delete({
+      where: { id },
+    });
+
+    res.json(deletedAppointment);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+}
+
+async function getOneAppointment(req, res) {
+  const id = Number(req.params.id);
+
+  try {
+    const result = await prisma.appointment.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (result) res.json(result);
+    else res.json({ msg: "Item not found" });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+}
+
+module.exports = {
+  getAllAppointments,
+  postOneAppointment,
+  patchOneAppointment,
+  deleteOneAppointment,
+  getOneAppointment,
+};
