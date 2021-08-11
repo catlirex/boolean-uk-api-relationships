@@ -9,7 +9,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["selectRelationCount", "orderByRelation"]
+  previewFeatures = ["selectRelationCount", "orderByRelation", "referentialActions"]
 }
 
 model Doctor {
@@ -26,5 +26,5 @@ model Appointment {
   date          DateTime
   reason        String
   doctor_id     Int
-  doctor        Doctor   @relation(fields: [doctor_id], references: [id])
+  doctor        Doctor   @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
 }

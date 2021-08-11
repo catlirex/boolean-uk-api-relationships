@@ -1,21 +1,34 @@
+const { appointment } = require("../../utils/database");
 const prisma = require("../../utils/database");
 
-const { errorHandler } = require("../doctor/controller");
+const {
+  errorHandler,
+  selectDoctorsWithAppointment,
+} = require("../doctor/controller");
 
 async function getAllAppointments(req, res) {
+  const { filter, value, order } = req.query;
+  let orderContent = null;
+  const filterContent = {
+    [filter]: value,
+  };
+  if (order === "recent") orderContent = { date: "asc" };
+
+  console.log(filterContent);
+
   try {
-    const result = await selectAppointments();
+    const result = await selectAppointments(filterContent, orderContent);
     res.json(result);
   } catch (e) {
     errorHandler(e, res);
   }
 }
 
-async function selectAppointments(filterContent, includeContent) {
+async function selectAppointments(filterContent, orderContent) {
   try {
     const result = await prisma.appointment.findMany({
       where: filterContent,
-      include: includeContent,
+      orderBy: orderContent,
     });
     return result;
   } catch (e) {
@@ -169,10 +182,24 @@ async function getOneAppointment(req, res) {
   }
 }
 
+async function getDoctorWithAppointment(req, res) {
+  try {
+    const doctorsIncludeAppointment = await selectDoctorsWithAppointment();
+
+    const result = doctorsIncludeAppointment.filter(
+      (target) => target["_count"].appointments !== 0
+    );
+    res.json(result);
+  } catch (e) {
+    errorHandler(e, res);
+  }
+}
+
 module.exports = {
   getAllAppointments,
   postOneAppointment,
   patchOneAppointment,
   deleteOneAppointment,
   getOneAppointment,
+  getDoctorWithAppointment,
 };

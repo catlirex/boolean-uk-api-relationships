@@ -204,6 +204,7 @@ async function deleteOneDoctor(req, res) {
   try {
     const deletedDoctor = await prisma.doctor.delete({
       where: { id },
+      include: { appointments: true },
     });
 
     res.json(deletedDoctor);
@@ -251,8 +252,14 @@ async function getOneDoctorPractice(req, res) {
 
 async function getBusyDoctor(req, res) {
   try {
-    const doctorsWithAppointment = await selectDoctorsWithAppointment();
-    res.json({ Busiest_doctor: doctorWithAppointment[0] });
+    const doctorsIncludeAppointment = await selectDoctorsWithAppointment();
+    const result = doctorsIncludeAppointment.filter(
+      (target) =>
+        target["_count"].appointments ===
+        doctorsIncludeAppointment[0]["_count"].appointments
+    );
+
+    res.json({ Busiest_doctor: result });
   } catch (e) {
     errorHandler(e, res);
   }
@@ -280,7 +287,18 @@ async function selectDoctorsWithAppointment() {
   }
 }
 
-async function getDoctorsAppointmentTime(req, res) {}
+async function getDoctorsAppointmentTime(req, res) {
+  const doctorsIncludeAppointment = await selectDoctorsWithAppointment();
+  const doctorsAppointmentHours = doctorsIncludeAppointment.map((doctor) => {
+    const selectedData = {
+      id: doctor.id,
+      appointmentTime: (doctor["_count"].appointments * 30) / 60 + " hours",
+    };
+
+    return selectedData;
+  });
+  res.json(doctorsAppointmentHours);
+}
 
 module.exports = {
   getAllDoctors,
@@ -293,4 +311,5 @@ module.exports = {
   getBusyDoctor,
   getDoctorsAppointmentTime,
   errorHandler,
+  selectDoctorsWithAppointment,
 };
