@@ -27,16 +27,23 @@ async function selectPatients(filterContent, orderContent) {
 async function getOnePatient(req, res) {
   const id = Number(req.params.id);
   try {
-    const result = await prisma.patient.findUnique({
-      where: {
-        id,
-      },
-      include: { appointments: true },
-    });
+    const result = await selectOnePatient({ id });
     if (result) res.json(result);
     else res.json({ msg: "Item not found" });
   } catch (e) {
     errorHandler(e, res);
+  }
+}
+
+async function selectOnePatient(filterContent, includeContent) {
+  try {
+    const result = await prisma.patient.findUnique({
+      where: filterContent,
+      include: includeContent,
+    });
+    return result;
+  } catch (e) {
+    throw e;
   }
 }
 
@@ -195,10 +202,54 @@ async function updatePatientToServer(id, toUpdateContent) {
     throw e;
   }
 }
+
+async function getOnePatientAppointment(req, res) {
+  const id = Number(req.params.id);
+
+  try {
+    const result = await selectOnePatient({ id }, { appointments: true });
+
+    if (result.appointments) res.json({ appointments: result.appointments });
+    if (!result.appointments) res.json({ msg: "No item found" });
+  } catch (e) {
+    errorHandler(e, res);
+  }
+}
+
+async function getPatientRelateDoctors(req, res) {
+  const id = Number(req.params.id);
+  const { filterPractice } = req.query;
+  const includeContent = {
+    appointments: {
+      where: { practice_name: filterPractice },
+      include: { doctor: true },
+    },
+  };
+
+  const result = await selectOnePatient({ id }, includeContent);
+
+  if (!result) return res.status(400).json({ ERROR: "No Patient Found" });
+  const doctorList = generateDoctorList(result.appointments);
+  res.json(doctorList);
+}
+
+function generateDoctorList(appointmentList) {
+  if (!appointmentList.length) return { msg: "No Doctor for this patient" };
+  if (appointmentList.length) {
+    const doctorList = [];
+    for (const appointments of appointmentList) {
+      doctorList.push(appointments.doctor);
+    }
+    return doctorList;
+  }
+}
+
 module.exports = {
   getAllPatients,
   getOnePatient,
   postOnePatient,
   deleteOnePatient,
   patchOnePatient,
+  getOnePatientAppointment,
+  getPatientRelateDoctors,
 };
