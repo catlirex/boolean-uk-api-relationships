@@ -1,4 +1,3 @@
-const { doctor } = require("../../utils/database");
 const prisma = require("../../utils/database");
 
 function errorHandler(error, res) {
@@ -55,37 +54,20 @@ async function postOneDoctor(req, res) {
   const newDoctor = req.body;
   const { appointments } = newDoctor;
   const validDoctor = newDoctorChecker(newDoctor);
-  console.log("validDoctor", validDoctor);
   if (!validDoctor)
     return res.status(400).json({ ERROR: "Doctor info invalid" });
 
   if (appointments) {
     const validAppointments = newDoctorAppointmentChecker(appointments);
-    console.log("validAppointments", validAppointments);
     if (!validAppointments)
       return res.status(400).json({ ERROR: "Doctor info invalid" });
   }
 
   try {
     const createdDoctor = await createDoctorToServer(newDoctor);
-    const result = await selectOneDoctorInclude(
-      { id: createdDoctor.id },
-      { appointments: true }
-    );
+    res.json(createdDoctor);
   } catch (e) {
     errorHandler(e, res);
-  }
-}
-
-async function selectOneDoctorInclude(filterContent, includeContent) {
-  try {
-    const result = await prisma.doctor.findUnique({
-      where: filterContent,
-      include: includeContent,
-    });
-    return result;
-  } catch (e) {
-    throw e;
   }
 }
 
@@ -99,6 +81,7 @@ async function createDoctorToServer(newDoctor) {
         specialty,
         appointments: { create: appointments },
       },
+      include: { appointments: true },
     });
 
     return result;
@@ -146,10 +129,8 @@ function newDoctorAppointmentChecker(appointments) {
       : (lengthMatch = false);
 
     if (hasAllKeys && lengthMatch) isValid = true;
-    console.log("in loop", isValid);
     if (!isValid) break;
   }
-  console.log("before return", isValid);
   return isValid;
 }
 
@@ -304,4 +285,5 @@ module.exports = {
   getOneDoctorPractice,
   getBusyDoctor,
   getDoctorsAppointmentTime,
+  errorHandler,
 };

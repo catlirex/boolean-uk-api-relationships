@@ -3,6 +3,7 @@ const express = require("express");
 const morgan = require("morgan");
 
 const doctorRouter = require("./src/resources/doctor/router");
+const appointment = require("./src/resources/appointment/router");
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.use("/doctors", doctorRouter);
+app.use("/appointments", appointment);
 
 app.all("*", (req, res) => {
   res.json({ ok: "true" });
